@@ -10,6 +10,10 @@ guidance from measurement, is usually unproductive. There are often more
 valuable ways to spend your effort than micro-optimizing code that already runs
 fast enough.
 
+```python
+print("Let's take a look!")
+```
+
 ## Measuring Performance
 
 **What do we measure?**
@@ -30,10 +34,10 @@ Tools:
 - `hyperfine` times repetitions & calculates statistics, can easily compare multiple scripts. Needs to be installed.
 
 ```zsh
-time sleep 1
+# time sleep 1
 
 # hyperfine 'sleep .1'
-# hyperfine 'sleep .2' 'sleep .1' 'sleep .3'
+hyperfine 'sleep .2' 'sleep .1' 'sleep .3'
 ```
 
 ### Language-level Timing
@@ -44,7 +48,9 @@ This is how we can begin to identify what portions of programs are "slow" and wh
 #### Block-level Timing
 
 ```python
-from time import perf_counter
+from time import perf_counter # high performance monotonic clock
+from time import now                          # date clock
+from datetime import datetime; datetime.now() # date clock
 from time import sleep
 from random import Random
 
@@ -88,9 +94,30 @@ print(f'{t() = }')
 
 ```python
 from time import sleep, perf_counter
+from random import Random
+from functools import wraps
 
-def timed(func, *args, **kwargs):
+def timed(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        start = perf_counter()
+        result = f(*args, **kwargs)
+        stop = perf_counter()
+        print(f'{stop - start:.6f}s')
+        return result
+    return wrapper
 
+# @timed
+def func(n, rnd=Random(0)):
+    return sum(rnd.randint(0, 100) for _ in range(n)) ** (1/2)
+
+# timed(func, 10)
+# timed(func, 10_000)
+# timed(func, 10_000_000)
+
+func(10)
+func(10_000)
+func(10_000_000)
 ```
 
 This is great, but what if I don’t want to rewrite my program in order to time its
@@ -131,14 +158,15 @@ def timer(*funcs):
     finally:
         setprofile(None)
 
-slow()      # not timed
+
+def main():
+    slow()
+    slow()
+    fast()
 
 with timer(slow):
-    slow()
-    fast()  # not timed
-    slow()
-
-slow()      # not timed
+    main()
+print('done')
 ```
 
 ## Profiling
@@ -146,7 +174,6 @@ slow()      # not timed
 ```python
 from cProfile import Profile
 from time import sleep
-
 
 def summation():
     total = 0
@@ -176,6 +203,7 @@ You can even do this in a jupyter notebook!
 *profiling*:
     - prefix any line with `%prun` to time a single line
     - prefix any cell with `%%prun` to time a single cell
+    - jupyter line_profiler()
 
 ## (In)Efficiently Loading Data from Lots of Files
 
@@ -241,7 +269,7 @@ from io import StringIO
 
 # profile each function and collect results & profile stats
 results = {}
-for func in [a]: # b, c
+for func in [a, b, c]:
     with Profile() as pr:
         res = func()
 

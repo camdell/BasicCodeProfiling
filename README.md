@@ -17,3 +17,18 @@ where time is spent and make evidence-based improvements.
 - What are the levels in which we measure performance?
 - How do we measure performance?
 - What do we do when our programs run slow?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
