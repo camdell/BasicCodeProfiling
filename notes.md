@@ -258,6 +258,18 @@ def b(): # II.
     return concat(xs, dtype=int64)
 
 def c(): # III.
+    """While faster with small file sizes, this approach falls off quickly
+    when each individual file is larger (e.g. 10k rows instead of 100 rows)
+
+    The profiling results reveal this as we are iterating through the file object
+    at the Python level instead of delegating everything to NumPy C internals.
+    
+    This emphasizes the importance of benchmarking in an exhaustive manner,
+    always check different scales and contexts to verify consistency or at the
+    very least identify what your timings "depend" on.
+
+    Approach b is likely the best "all around" approach for this form of problem.
+    """
     with FileInput(files=data_dir.glob("*.txt")) as f:
         return loadtxt(f)
 
